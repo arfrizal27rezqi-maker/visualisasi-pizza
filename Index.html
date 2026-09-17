@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisasi Piza Ke Persegi Panjang - Pembuktian Luas Lingkaran</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        canvas {
+            touch-action: none;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Custom range slider styling */
+        input[type=range] {
+            accent-color: #f59e0b;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between overflow-x-hidden text-slate-100">
+
+    <!-- Header Navbar -->
+    <header class="w-full glass-panel sticky top-0 z-50 border-b border-slate-800 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl">🍕</span>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-amber-400 via-orange-400 to-red-500 bg-clip-text text-transparent">
+                    Transformasi Piza ke Persegi Panjang
+                </h1>
+                <p class="text-xs text-slate-400">Visualisasi Konsep Geometri & Pembuktian Luas Lingkaran</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                Visualisasi Interaktif
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Canvas Visualizer Section (Left 8 cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-4">
+            <div class="glass-panel rounded-2xl p-4 flex-1 flex flex-col relative overflow-hidden shadow-2xl">
+                <!-- Canvas Header Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 px-2">
+                    <div class="flex items-center gap-2 text-sm text-slate-300">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span font-semibold id="stateLabel">Bentuk: Lingkaran Utuh</span>
+                    </div>
+                    <!-- Pizza Style Selector -->
+                    <div class="flex items-center gap-2 bg-slate-900/60 p-1 rounded-lg border border-slate-700/50">
+                        <button id="stylePepperoni" class="px-3 py-1 text-xs rounded-md bg-amber-500 text-slate-950 font-semibold transition">Piza Classic</button>
+                        <button id="styleVeggie" class="px-3 py-1 text-xs rounded-md text-slate-300 hover:text-white transition">Piza Veggie</button>
+                        <button id="styleGeometric" class="px-3 py-1 text-xs rounded-md text-slate-300 hover:text-white transition">Vektor Polos</button>
+                    </div>
+                </div>
+
+                <!-- Interactive Canvas Canvas -->
+                <div class="relative w-full flex-1 min-h-[380px] md:min-h-[460px] bg-slate-950/80 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <canvas id="pizzaCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+                    <!-- Overlay Legend / Labels -->
+                    <div id="dimensionOverlay" class="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-700/70 backdrop-filter blur-md px-3 py-2 rounded-lg text-xs space-y-1 shadow-lg">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-0.5 bg-red-400"></span>
+                            <span>Tinggi Persegi Panjang ≈ Jari-jari ($r$)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-0.5 bg-amber-400"></span>
+                            <span>Panjang Alas ≈ Keliling / 2 ($\pi \cdot r$)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slider Controls -->
+                <div class="mt-4 space-y-4 bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+                    <!-- Progress / Transformation Slider -->
+                    <div>
+                        <div class="flex justify-between items-center text-sm mb-1">
+                            <label for="transformSlider" class="font-medium text-amber-300 flex items-center gap-2">
+                                🔄 Progres Transformasi Susunan:
+                            </label>
+                            <span id="transformPercent" class="font-bold text-amber-400">0% (Lingkaran)</span>
+                        </div>
+                        <input type="range" id="transformSlider" min="0" max="100" value="0" step="0.5" class="w-full h-2.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <!-- Number of Slices Slider -->
+                        <div>
+                            <div class="flex justify-between items-center text-xs text-slate-300 mb-1">
+                                <span>Jumlah Potongan Juring ($N$):</span>
+                                <span id="sliceValue" class="font-bold text-amber-400">16 Potongan</span>
+                            </div>
+                            <input type="range" id="sliceSlider" min="4" max="64" value="16" step="2" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                        </div>
+
+                        <!-- Action Buttons & Options -->
+                        <div class="flex items-center justify-end gap-2">
+                            <button id="btnPlay" class="flex-1 py-2 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold rounded-lg transition shadow-lg text-sm flex items-center justify-center gap-1.5">
+                                <span>▶ Play Transformasi</span>
+                            </button>
+                            <button id="btnReset" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg border border-slate-700 transition text-sm">
+                                ↺ Reset
+                            </button>
+                            <button id="btnToggleGrid" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-lg border border-slate-700 transition text-sm title="Tampilkan Panduan">
+                                📐 Guidelist
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Educational Side Panel (Right 4 cols) -->
+        <section class="lg:col-span-4 flex flex-col gap-4">
+            <!-- Narrative Card -->
+            <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+                <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+                    💡 Konsep Dasar
+                </h2>
+                <div class="text-xs md:text-sm text-slate-300 space-y-3 leading-relaxed">
+                    <p class="p-3 bg-amber-500/10 border-l-4 border-amber-500 rounded-r-lg">
+                        <i class="italic">"Bayangkan piza berbentuk lingkaran dipotong jadi juring-juring tipis. Kalau potongan piza itu disusun berselang-seling atas-bawah, bentuknya bakal berubah menyerupai Persegi Panjang!"</i>
+                    </p>
+                    <p>
+                        Ketika piza lingkaran dipotong menjadi juring-juring yang sangat tipis dan disusun berselang-seling (satu menghadap ke atas, satu menghadap ke bawah), bentuk keseluruhan akan merapat menjadi <strong>Persegi Panjang</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Math Formula Breakdown Card -->
+            <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4 flex-1">
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2 border-b border-slate-700 pb-2">
+                    🧮 Rumus Pembuktian Luas
+                </h3>
+                <div class="space-y-4 text-xs md:text-sm">
+                    <!-- Step 1 -->
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider block mb-1">1. Keliling Lingkaran Utuh</span>
+                        <p class="text-slate-300 font-mono text-sm">Keliling = 2 × π × r</p>
+                        <p class="text-slate-400 text-xs mt-1">Sisi melengkung piza membentuk batas keliling lingkaran.</p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+                        <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider block mb-1">2. Sisi Persegi Panjang Hasil Susunan</span>
+                        <ul class="space-y-1 text-slate-300 text-xs">
+                            <li>• <strong>Alas (Panjang $p$):</strong> Setengah dari total keliling piza (karena separuh juring di atas, separuh di bawah).
+                                <div class="font-mono text-amber-300 text-sm mt-0.5">p = ½ × (2 × π × r) = π × r</div>
+                            </li>
+                            <li class="mt-2">• <strong>Tinggi ($l$):</strong> Sama dengan panjang jari-jari piza ($r$).
+                                <div class="font-mono text-red-400 text-sm mt-0.5">l = r</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Step 3 / Result -->
+                    <div class="bg-gradient-to-br from-amber-500/20 to-orange-500/10 p-4 rounded-xl border border-amber-500/30">
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-1">3. Kesimpulan Luas Lingkaran</span>
+                        <div class="text-slate-200 text-xs">
+                            Luas Persegi Panjang = Panjang × Lebar
+                        </div>
+                        <div class="text-base md:text-lg font-extrabold text-amber-300 font-mono my-1">
+                            Luas = (π × r) × r = π × r²
+                        </div>
+                        <p class="text-slate-400 text-xs">
+                            Semakin banyak jumlah potongan juring ($N \to \infty$), hasilnya akan membentuk persegi panjang yang semakin sempurna!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800 glass-panel mt-4">
+        Simulasi Visual Interaktif Matematika Geometri — Konsep Pembuktian Luas Lingkaran
+    </footer>
+
+    <!-- JavaScript Code -->
+    <script>
+        const canvas = document.getElementById('pizzaCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Controls
+        const transformSlider = document.getElementById('transformSlider');
+        const transformPercent = document.getElementById('transformPercent');
+        const sliceSlider = document.getElementById('sliceSlider');
+        const sliceValue = document.getElementById('sliceValue');
+        const btnPlay = document.getElementById('btnPlay');
+        const btnReset = document.getElementById('btnReset');
+        const btnToggleGrid = document.getElementById('btnToggleGrid');
+        const stateLabel = document.getElementById('stateLabel');
+
+        const stylePepperoni = document.getElementById('stylePepperoni');
+        const styleVeggie = document.getElementById('styleVeggie');
+        const styleGeometric = document.getElementById('styleGeometric');
+
+        // State Variables
+        let numSlices = parseInt(sliceSlider.value, 10);
+        let progress = 0; // 0 (Circle) to 1 (Rectangle)
+        let isPlaying = false;
+        let animationFrameId = null;
+        let showGrid = true;
+        let pizzaStyle = 'pepperoni'; // 'pepperoni', 'veggie', 'geometric'
+
+        // Pizza Toppings data generation (deterministic based on slice index)
+        let toppingsData = [];
+
+        function generateToppings() {
+            toppingsData = [];
+            for (let i = 0; i < 128; i++) {
+                toppingsData.push({
+                    dist: 0.2 + Math.random() * 0.55, // relative radius distance
+                    angleOffset: (Math.random() - 0.5) * 0.7, // relative angle within slice
+                    size: 0.08 + Math.random() * 0.06,
+                    type: Math.random() > 0.4 ? 'pepperoni' : 'olive'
+                });
+            }
+        }
+        generateToppings();
+
+        // Canvas Responsive Setup
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawPizzaSlice(ctx, radius, sliceAngle, style, index) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, radius, -sliceAngle / 2, sliceAngle / 2);
+            ctx.closePath();
+
+            if (style === 'geometric') {
+                ctx.fillStyle = index % 2 === 0 ? '#f59e0b' : '#d97706';
+                ctx.fill();
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                return;
+            }
+
+            // Dough / Base Crust Layer
+            ctx.fillStyle = '#fef3c7'; // Cheese base
+            ctx.fill();
+
+            // Outer Crust (Rim)
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, -sliceAngle / 2, sliceAngle / 2);
+            ctx.arc(0, 0, radius * 0.86, sliceAngle / 2, -sliceAngle / 2, true);
+            ctx.closePath();
+            ctx.fillStyle = '#d97706'; // Golden crust
+            ctx.fill();
+
+            // Toppings rendering
+            if (style === 'pepperoni' || style === 'veggie') {
+                const toppingsPerSlice = Math.max(1, Math.floor(12 / numSlices));
+                for (let t = 0; t < toppingsPerSlice; t++) {
+                    const topIdx = (index * 7 + t * 3) % toppingsData.length;
+                    const top = toppingsData[topIdx];
+
+                    const rPos = radius * top.dist;
+                    const aPos = top.angleOffset * (sliceAngle / 2);
+
+                    const tx = rPos * Math.cos(aPos);
+                    const ty = rPos * Math.sin(aPos);
+                    const topRadius = radius * top.size;
+
+                    if (style === 'pepperoni') {
+                        ctx.beginPath();
+                        ctx.arc(tx, ty, topRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = '#dc2626'; // Pepperoni red
+                        ctx.fill();
+                        ctx.strokeStyle = '#991b1b';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    } else if (style === 'veggie') {
+                        if (t % 2 === 0) {
+                            // Green pepper square/strip
+                            ctx.fillStyle = '#16a34a';
+                            ctx.fillRect(tx - topRadius, ty - topRadius, topRadius * 1.5, topRadius * 1.2);
+                        } else {
+                            // Olive ring
+                            ctx.beginPath();
+                            ctx.arc(tx, ty, topRadius * 0.8, 0, Math.PI * 2);
+                            ctx.fillStyle = '#18181b';
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+
+            // Slice Stroke / Cut lines
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, radius, -sliceAngle / 2, sliceAngle / 2);
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(120, 53, 15, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function draw() {
+            const width = canvas.width / window.devicePixelRatio;
+            const height = canvas.height / window.devicePixelRatio;
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Radius calculation according to canvas viewport
+            const maxRadius = Math.min(width * 0.35, height * 0.32);
+            const radius = Math.max(70, maxRadius);
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            // Coordinates for Circle center
+            const circleCenter = {
+                x: width * 0.5,
+                y: height * 0.45
+            };
+
+            // Calculate Rectangle layout parameters
+            const chordLength = 2 * radius * Math.sin(sliceAngle / 2);
+            const rectTotalWidth = (numSlices / 2) * chordLength;
+            const rectHeight = radius * Math.cos(sliceAngle / 2);
+
+            const rectCenter = {
+                x: width * 0.5,
+                y: height * 0.45
+            };
+
+            const rectStartX = rectCenter.x - rectTotalWidth / 2;
+            const rectStartY = rectCenter.y - rectHeight / 2;
+
+            // Draw Background Grid / Dimension Annotations if enabled
+            if (showGrid && progress > 0.3) {
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, (progress - 0.3) * 1.4);
+                
+                // Top & Bottom guide lines for rectangle height
+                const topY = rectStartY;
+                const bottomY = rectStartY + rectHeight;
+                const leftX = rectStartX;
+                const rightX = rectStartX + rectTotalWidth;
+
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+
+                // Box outline
+                ctx.strokeRect(leftX, topY, rectTotalWidth, rectHeight);
+                ctx.setLineDash([]);
+
+                // Height label (Radius r)
+                ctx.strokeStyle = '#f87171'; // Red
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(leftX - 15, topY);
+                ctx.lineTo(leftX - 15, bottomY);
+                ctx.stroke();
+
+                ctx.fillStyle = '#f87171';
+                ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('l = r', leftX - 22, (topY + bottomY) / 2 + 4);
+
+                // Base label (Half Circumference = pi * r)
+                ctx.strokeStyle = '#fbbf24'; // Yellow
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(leftX, bottomY + 15);
+                ctx.lineTo(rightX, bottomY + 15);
+                ctx.stroke();
+
+                ctx.fillStyle = '#fbbf24';
+                ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('p = ½ × Keliling = π × r', (leftX + rightX) / 2, bottomY + 32);
+
+                ctx.restore();
+            }
+
+            // Draw each individual slice interpolated between Circle and Rectangle position
+            for (let i = 0; i < numSlices; i++) {
+                // 1. Circle Position & Rotation
+                const circleAngle = i * sliceAngle + sliceAngle / 2;
+                const circleX = circleCenter.x;
+                const circleY = circleCenter.y;
+                const circleRot = circleAngle;
+
+                // 2. Rectangle Position & Rotation
+                const isEven = i % 2 === 0;
+                const pairIndex = Math.floor(i / 2);
+
+                let rectX, rectY, rectRot;
+
+                if (isEven) {
+                    // Slices pointing DOWN (Apex at bottom, crust at top)
+                    rectX = rectStartX + (pairIndex + 0.5) * chordLength;
+                    rectY = rectStartY + rectHeight;
+                    rectRot = -Math.PI / 2; 
+                } else {
+                    // Slices pointing UP (Apex at top, crust at bottom)
+                    rectX = rectStartX + (pairIndex + 1.0) * chordLength;
+                    rectY = rectStartY;
+                    rectRot = Math.PI / 2;
+                }
+
+                // Smooth Interpolation (Easing)
+                // Linear interpolation: current = start + progress * (end - start)
+                const currentX = circleX + progress * (rectX - circleX);
+                const currentY = circleY + progress * (rectY - circleY);
+
+                // Normalize rotation interpolation smoothly
+                let currentRot;
+                let targetRot = rectRot;
+                
+                // Adjust target angle to prevent unnecessary full spins
+                let diff = (targetRot - circleRot) % (Math.PI * 2);
+                if (diff < -Math.PI) diff += Math.PI * 2;
+                if (diff > Math.PI) diff -= Math.PI * 2;
+                
+                currentRot = circleRot + progress * diff;
+
+                // Render Slice at interpolated transform
+                ctx.save();
+                ctx.translate(currentX, currentY);
+                ctx.rotate(currentRot);
+
+                drawPizzaSlice(ctx, radius, sliceAngle, pizzaStyle, i);
+
+                ctx.restore();
+            }
+        }
+
+        function updateTransformState(val) {
+            progress = val / 100;
+            transformSlider.value = val;
+            
+            if (progress === 0) {
+                transformPercent.textContent = `0% (Lingkaran)`;
+                stateLabel.textContent = `Bentuk: Lingkaran Utuh`;
+            } else if (progress === 1) {
+                transformPercent.textContent = `100% (Persegi Panjang)`;
+                stateLabel.textContent = `Bentuk: Mendekati Persegi Panjang`;
+            } else {
+                const pct = Math.round(progress * 100);
+                transformPercent.textContent = `${pct}% (Transformasi)`;
+                stateLabel.textContent = `Membuka dan Menyusun Juring...`;
+            }
+            
+            draw();
+        }
+
+        transformSlider.addEventListener('input', (e) => {
+            if (isPlaying) pauseAnimation();
+            updateTransformState(parseFloat(e.target.value));
+        });
+
+        sliceSlider.addEventListener('input', (e) => {
+            numSlices = parseInt(e.target.value, 10);
+            sliceValue.textContent = `${numSlices} Potongan`;
+            draw();
+        });
+
+        function animate() {
+            if (!isPlaying) return;
+
+            let currentVal = parseFloat(transformSlider.value);
+            currentVal += 0.8; // Speed of animation
+
+            if (currentVal >= 100) {
+                currentVal = 100;
+                pauseAnimation();
+            }
+
+            updateTransformState(currentVal);
+
+            if (isPlaying) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        }
+
+        function playAnimation() {
+            if (parseFloat(transformSlider.value) >= 100) {
+                updateTransformState(0);
+            }
+            isPlaying = true;
+            btnPlay.innerHTML = `<span>⏸ Pause</span>`;
+            btnPlay.classList.replace('from-amber-500', 'from-red-500');
+            btnPlay.classList.replace('to-orange-500', 'to-red-600');
+            animate();
+        }
+
+        function pauseAnimation() {
+            isPlaying = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            btnPlay.innerHTML = `<span>▶ Play Transformasi</span>`;
+            btnPlay.classList.replace('from-red-500', 'from-amber-500');
+            btnPlay.classList.replace('to-red-600', 'to-orange-500');
+        }
+
+        btnPlay.addEventListener('click', () => {
+            if (isPlaying) {
+                pauseAnimation();
+            } else {
+                playAnimation();
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            pauseAnimation();
+            updateTransformState(0);
+        });
+
+        btnToggleGrid.addEventListener('click', () => {
+            showGrid = !showGrid;
+            btnToggleGrid.classList.toggle('bg-amber-500/20', showGrid);
+            btnToggleGrid.classList.toggle('text-amber-300', showGrid);
+            draw();
+        });
+
+        // Pizza Style Buttons handlers
+        function setPizzaStyle(style) {
+            pizzaStyle = style;
+            stylePepperoni.className = style === 'pepperoni' ? "px-3 py-1 text-xs rounded-md bg-amber-500 text-slate-950 font-semibold transition" : "px-3 py-1 text-xs rounded-md text-slate-300 hover:text-white transition";
+            styleVeggie.className = style === 'veggie' ? "px-3 py-1 text-xs rounded-md bg-amber-500 text-slate-950 font-semibold transition" : "px-3 py-1 text-xs rounded-md text-slate-300 hover:text-white transition";
+            styleGeometric.className = style === 'geometric' ? "px-3 py-1 text-xs rounded-md bg-amber-500 text-slate-950 font-semibold transition" : "px-3 py-1 text-xs rounded-md text-slate-300 hover:text-white transition";
+            draw();
+        }
+
+        stylePepperoni.addEventListener('click', () => setPizzaStyle('pepperoni'));
+        styleVeggie.addEventListener('click', () => setPizzaStyle('veggie'));
+        styleGeometric.addEventListener('click', () => setPizzaStyle('geometric'));
+
+        // Initial Load
+        window.onload = () => {
+            resizeCanvas();
+            updateTransformState(0);
+        };
+    </script>
+</body>
+</html>
